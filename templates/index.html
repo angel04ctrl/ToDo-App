@@ -2,71 +2,237 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>ToDo List gRPC</title>
+  <title>ToDo Pro • gRPC Distribuido</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    .priority-alta { background-color: #fee2e2; color: #ef4444; }
+    .priority-media { background-color: #fef3c7; color: #d97706; }
+    .priority-baja { background-color: #ecfdf5; color: #10b981; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-  <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-xl shadow">
-    <h1 class="text-3xl font-bold text-center mb-6">ToDo List</h1>
-    
-    <form id="addForm" class="flex gap-2 mb-6">
-      <input id="title" type="text" placeholder="Nueva tarea..." 
-             class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500">
-      <button type="submit" 
-              class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-        Agregar
-      </button>
-    </form>
+<body class="bg-gray-950 text-white min-h-screen">
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-4xl font-bold flex items-center gap-3">
+          ToDo APP <span class="text-blue-500 text-2xl">gRPC</span>
+        </h1>
+        <p class="text-gray-400">Sistema Distribuido en Tiempo Real</p>
+      </div>
+      <div id="stats" class="flex gap-6 text-sm"></div>
+    </div>
 
-    <ul id="todoList" class="space-y-2"></ul>
+    <!-- Formulario de agregar -->
+    <div class="bg-gray-900 rounded-2xl p-6 mb-8">
+      <form id="addForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="title" type="text" placeholder="Título de la tarea" 
+               class="bg-gray-800 border border-gray-700 rounded-xl px-5 py-3 focus:outline-none focus:border-blue-500">
+        
+        <select id="priority" class="bg-gray-800 border border-gray-700 rounded-xl px-5 py-3">
+          <option value="Alta">Alta prioridad</option>
+          <option value="Media" selected>Media prioridad</option>
+          <option value="Baja">Baja prioridad</option>
+        </select>
+
+        <input id="due_date" type="date" class="bg-gray-800 border border-gray-700 rounded-xl px-5 py-3">
+        
+        <textarea id="description" placeholder="Descripción (opcional)" rows="2"
+                  class="bg-gray-800 border border-gray-700 rounded-xl px-5 py-3 col-span-2 resize-none"></textarea>
+
+        <button type="submit"
+                class="bg-blue-600 hover:bg-blue-700 transition-colors font-semibold py-3 rounded-xl col-span-2">
+          + Agregar Tarea
+        </button>
+      </form>
+    </div>
+
+    <!-- Filtros -->
+    <div class="flex gap-2 mb-6">
+      <button onclick="filterTodos('all')" id="btn-all"
+              class="filter-btn active px-5 py-2 rounded-xl">Todas</button>
+      <button onclick="filterTodos('pending')" id="btn-pending"
+              class="filter-btn px-5 py-2 rounded-xl">Pendientes</button>
+      <button onclick="filterTodos('completed')" id="btn-completed"
+              class="filter-btn px-5 py-2 rounded-xl">Completadas</button>
+    </div>
+
+    <!-- Lista de tareas -->
+    <div id="todoList" class="space-y-4"></div>
+  </div>
+
+  <!-- Modal de edición -->
+  <div id="editModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center">
+    <div class="bg-gray-900 rounded-3xl p-8 w-full max-w-lg">
+      <h2 class="text-2xl font-bold mb-6">Editar Tarea</h2>
+      <input id="edit-id" type="hidden">
+      <input id="edit-title" type="text" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-5 py-3 mb-4">
+      <textarea id="edit-description" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-5 py-3 mb-4"></textarea>
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <select id="edit-priority" class="bg-gray-800 border border-gray-700 rounded-xl px-5 py-3">
+          <option value="Alta">Alta</option>
+          <option value="Media">Media</option>
+          <option value="Baja">Baja</option>
+        </select>
+        <input id="edit-due_date" type="date" class="bg-gray-800 border border-gray-700 rounded-xl px-5 py-3">
+      </div>
+      <div class="flex gap-4">
+        <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border border-gray-600">Cancelar</button>
+        <button onclick="saveEdit()" class="flex-1 bg-green-600 hover:bg-green-700 py-3 rounded-xl">Guardar Cambios</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    const list = document.getElementById('todoList');
-    const form = document.getElementById('addForm');
+    let currentFilter = 'all';
+    let todos = [];
 
     async function loadTodos() {
       const res = await fetch('/api/todos');
-      const todos = await res.json();
-      list.innerHTML = '';
-      todos.forEach(todo => {
-        const li = document.createElement('li');
-        li.className = `flex items-center justify-between p-4 rounded-lg ${todo.completed ? 'bg-green-100 line-through' : 'bg-gray-50'}`;
-        li.innerHTML = `
-          <div class="flex items-center gap-3">
-            <input type="checkbox" ${todo.completed ? 'checked' : ''} 
-                   onchange="toggle('${todo.id}')" class="w-5 h-5">
-            <span class="text-lg">${todo.title}</span>
+      todos = await res.json();
+      renderTodos();
+      updateStats();
+    }
+
+    function renderTodos() {
+      const container = document.getElementById('todoList');
+      container.innerHTML = '';
+
+      const filtered = todos.filter(t => {
+        if (currentFilter === 'pending') return !t.completed;
+        if (currentFilter === 'completed') return t.completed;
+        return true;
+      });
+
+      filtered.forEach(todo => {
+        const priorityClass = `priority-${todo.priority.toLowerCase()}`;
+        const card = document.createElement('div');
+        card.className = `bg-gray-900 rounded-2xl p-6 transition-all ${todo.completed ? 'opacity-75' : ''}`;
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-4">
+              <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                     onchange="toggleTodo('${todo.id}')" class="w-6 h-6 accent-blue-500">
+              <div>
+                <h3 class="text-xl font-semibold ${todo.completed ? 'line-through text-gray-500' : ''}">${todo.title}</h3>
+                ${todo.description ? `<p class="text-gray-400 mt-1">${todo.description}</p>` : ''}
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <span class="px-4 py-1 text-xs font-bold rounded-full ${priorityClass}">
+                ${todo.priority}
+              </span>
+              ${todo.due_date ? `<span class="text-xs text-gray-400">${todo.due_date}</span>` : ''}
+            </div>
           </div>
-          <button onclick="deleteTodo('${todo.id}')" 
-                  class="text-red-600 hover:text-red-800">🗑</button>
+
+          <div class="flex justify-end gap-3 mt-6">
+            <button onclick="editTodo('${todo.id}')" class="text-blue-400 hover:text-blue-500">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button onclick="deleteTodo('${todo.id}')" class="text-red-400 hover:text-red-500">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
         `;
-        list.appendChild(li);
+        container.appendChild(card);
       });
     }
 
-    form.addEventListener('submit', async e => {
+    function updateStats() {
+      const total = todos.length;
+      const completed = todos.filter(t => t.completed).length;
+      document.getElementById('stats').innerHTML = `
+        <div><span class="text-2xl font-bold">${total}</span> total</div>
+        <div><span class="text-2xl font-bold text-green-500">${completed}</span> completadas</div>
+        <div><span class="text-2xl font-bold text-yellow-500">${total - completed}</span> pendientes</div>
+      `;
+    }
+
+    // Filtros
+    function filterTodos(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active', 'bg-blue-600', 'text-white'));
+      document.getElementById(`btn-${filter}`).classList.add('active', 'bg-blue-600', 'text-white');
+      renderTodos();
+    }
+
+    // Agregar tarea
+    document.getElementById('addForm').addEventListener('submit', async e => {
       e.preventDefault();
-      const title = document.getElementById('title').value;
-      if (!title) return;
+      const data = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        priority: document.getElementById('priority').value,
+        due_date: document.getElementById('due_date').value
+      };
+
+      if (!data.title) return;
+
       await fetch('/api/todos', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({title})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       });
-      document.getElementById('title').value = '';
+
+      document.getElementById('addForm').reset();
       loadTodos();
     });
 
-    async function toggle(id) {
-      await fetch(`/api/todos/${id}/toggle`, {method: 'POST'});
+    async function toggleTodo(id) {
+      await fetch(`/api/todos/${id}/toggle`, { method: 'POST' });
       loadTodos();
     }
 
     async function deleteTodo(id) {
-      await fetch(`/api/todos/${id}`, {method: 'DELETE'});
+      if (confirm('¿Eliminar esta tarea?')) {
+        await fetch(`/api/todos/${id}`, { method: 'DELETE' });
+        loadTodos();
+      }
+    }
+
+    // Editar tarea
+    let editingId = null;
+    function editTodo(id) {
+      const todo = todos.find(t => t.id === id);
+      if (!todo) return;
+
+      editingId = id;
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-title').value = todo.title;
+      document.getElementById('edit-description').value = todo.description;
+      document.getElementById('edit-priority').value = todo.priority;
+      document.getElementById('edit-due_date').value = todo.due_date;
+
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+
+    async function saveEdit() {
+      const data = {
+        title: document.getElementById('edit-title').value,
+        description: document.getElementById('edit-description').value,
+        priority: document.getElementById('edit-priority').value,
+        due_date: document.getElementById('edit-due_date').value,
+        completed: false
+      };
+
+      await fetch(`/api/todos/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      closeModal();
       loadTodos();
     }
+
+    // Auto-refresh cada 3 segundos
+    setInterval(loadTodos, 3000);
 
     // Cargar al inicio
     loadTodos();
