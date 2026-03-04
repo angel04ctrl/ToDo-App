@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\ntodo.proto\x12\x04todo\"\"\n\x11\x43reateTodoRequest\x12\r\n\x05title\x18\x01 \x01(\t\"\x1b\n\rTodoIdRequest\x12\n\n\x02id\x18\x01 \x01(\t\"4\n\x04Todo\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x11\n\tcompleted\x18\x03 \x01(\x08\"%\n\x08TodoList\x12\x19\n\x05todos\x18\x01 \x03(\x0b\x32\n.todo.Todo\"\x07\n\x05\x45mpty2\xcd\x01\n\x0bTodoService\x12\x31\n\nCreateTodo\x12\x17.todo.CreateTodoRequest\x1a\n.todo.Todo\x12(\n\tListTodos\x12\x0b.todo.Empty\x1a\x0e.todo.TodoList\x12\x31\n\x0eToggleComplete\x12\x13.todo.TodoIdRequest\x1a\n.todo.Todo\x12.\n\nDeleteTodo\x12\x13.todo.TodoIdRequest\x1a\x0b.todo.Emptyb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\ntodo.proto\x12\x04todo\"[\n\x11\x43reateTodoRequest\x12\r\n\x05title\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x10\n\x08priority\x18\x03 \x01(\t\x12\x10\n\x08\x64ue_date\x18\x04 \x01(\t\"z\n\x11UpdateTodoRequest\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x10\n\x08priority\x18\x04 \x01(\t\x12\x10\n\x08\x64ue_date\x18\x05 \x01(\t\x12\x11\n\tcompleted\x18\x06 \x01(\x08\"\x1b\n\rTodoIdRequest\x12\n\n\x02id\x18\x01 \x01(\t\"\x81\x01\n\x04Todo\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x10\n\x08priority\x18\x04 \x01(\t\x12\x10\n\x08\x64ue_date\x18\x05 \x01(\t\x12\x11\n\tcompleted\x18\x06 \x01(\x08\x12\x12\n\ncreated_at\x18\x07 \x01(\t\"%\n\x08TodoList\x12\x19\n\x05todos\x18\x01 \x03(\x0b\x32\n.todo.Todo\"\x07\n\x05\x45mpty2\x80\x02\n\x0bTodoService\x12\x31\n\nCreateTodo\x12\x17.todo.CreateTodoRequest\x1a\n.todo.Todo\x12(\n\tListTodos\x12\x0b.todo.Empty\x1a\x0e.todo.TodoList\x12\x31\n\x0eToggleComplete\x12\x13.todo.TodoIdRequest\x1a\n.todo.Todo\x12.\n\nDeleteTodo\x12\x13.todo.TodoIdRequest\x1a\x0b.todo.Empty\x12\x31\n\nUpdateTodo\x12\x17.todo.UpdateTodoRequest\x1a\n.todo.Todob\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,15 +32,17 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'todo_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_CREATETODOREQUEST']._serialized_start=20
-  _globals['_CREATETODOREQUEST']._serialized_end=54
-  _globals['_TODOIDREQUEST']._serialized_start=56
-  _globals['_TODOIDREQUEST']._serialized_end=83
-  _globals['_TODO']._serialized_start=85
-  _globals['_TODO']._serialized_end=137
-  _globals['_TODOLIST']._serialized_start=139
-  _globals['_TODOLIST']._serialized_end=176
-  _globals['_EMPTY']._serialized_start=178
-  _globals['_EMPTY']._serialized_end=185
-  _globals['_TODOSERVICE']._serialized_start=188
-  _globals['_TODOSERVICE']._serialized_end=393
+  _globals['_CREATETODOREQUEST']._serialized_end=111
+  _globals['_UPDATETODOREQUEST']._serialized_start=113
+  _globals['_UPDATETODOREQUEST']._serialized_end=235
+  _globals['_TODOIDREQUEST']._serialized_start=237
+  _globals['_TODOIDREQUEST']._serialized_end=264
+  _globals['_TODO']._serialized_start=267
+  _globals['_TODO']._serialized_end=396
+  _globals['_TODOLIST']._serialized_start=398
+  _globals['_TODOLIST']._serialized_end=435
+  _globals['_EMPTY']._serialized_start=437
+  _globals['_EMPTY']._serialized_end=444
+  _globals['_TODOSERVICE']._serialized_start=447
+  _globals['_TODOSERVICE']._serialized_end=703
 # @@protoc_insertion_point(module_scope)

@@ -54,6 +54,11 @@ class TodoServiceStub(object):
                 request_serializer=todo__pb2.TodoIdRequest.SerializeToString,
                 response_deserializer=todo__pb2.Empty.FromString,
                 _registered_method=True)
+        self.UpdateTodo = channel.unary_unary(
+                '/todo.TodoService/UpdateTodo',
+                request_serializer=todo__pb2.UpdateTodoRequest.SerializeToString,
+                response_deserializer=todo__pb2.Todo.FromString,
+                _registered_method=True)
 
 
 class TodoServiceServicer(object):
@@ -83,6 +88,12 @@ class TodoServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def UpdateTodo(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_TodoServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -105,6 +116,11 @@ def add_TodoServiceServicer_to_server(servicer, server):
                     servicer.DeleteTodo,
                     request_deserializer=todo__pb2.TodoIdRequest.FromString,
                     response_serializer=todo__pb2.Empty.SerializeToString,
+            ),
+            'UpdateTodo': grpc.unary_unary_rpc_method_handler(
+                    servicer.UpdateTodo,
+                    request_deserializer=todo__pb2.UpdateTodoRequest.FromString,
+                    response_serializer=todo__pb2.Todo.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -215,6 +231,33 @@ class TodoService(object):
             '/todo.TodoService/DeleteTodo',
             todo__pb2.TodoIdRequest.SerializeToString,
             todo__pb2.Empty.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UpdateTodo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/todo.TodoService/UpdateTodo',
+            todo__pb2.UpdateTodoRequest.SerializeToString,
+            todo__pb2.Todo.FromString,
             options,
             channel_credentials,
             insecure,
